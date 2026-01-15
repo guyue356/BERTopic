@@ -29,7 +29,7 @@
 
 **环境与依赖**
 
-建议使用 Python 3.8+ 的虚拟环境。主要依赖：
+建议使用 Python 3.11 的虚拟环境。主要依赖：
 
 ```
 pip install bertopic sentence-transformers umap-learn hdbscan scikit-learn pandas plotly torch torchvision
