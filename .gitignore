@@ -18,4 +18,6 @@ README_前沿技术.md
 
 BERTopic_Results_*/
 image/
-*.joblib
+*.joblib       
+绘图1.eddx       
+BERTopic主题聚类.txt  
