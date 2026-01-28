@@ -94,7 +94,7 @@ def generate_experiment_portal(filename="Experiment_Portal.html"):
     with open(filename, "w", encoding="utf-8") as f:
         f.write(html_template)
     
-    print(f"✅ 门户网页已生成: {filename}")
+    print(f"✅ 门户网页已更新: {filename}")
 
 import time
 if __name__ == "__main__":
