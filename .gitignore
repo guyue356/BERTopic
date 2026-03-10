@@ -23,3 +23,6 @@ image/
 BERTopic主题聚类.txt  
 data/bertopic_data_new.jsonl
 data/bertopic_data.jsonl
+main_bert_topic_test.ipynb
+main_bert_topic.ipynb
+Subset_clustering.ipynb
