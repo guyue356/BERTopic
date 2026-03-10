@@ -55,8 +55,8 @@ class BERTopicConfig:
     @property
     def embeddings_path(self) -> str:
 
-        return rf"D:\WOS2025\bertopic_abpa_2000-2025_V_pp3"
-        #return f"results/embedding_results/embeddings_PP_{self.data_source}_amb_slide_window3.pkl"
+        #return rf"D:\WOS2025\bertopic_abpa_2000-2025_V_pp3"
+        return f"results/embedding_results/embeddings_PP_{self.data_source}_amb_slide_window3.pkl"
 
     @property
     def umap_cache_path(self) -> str:
