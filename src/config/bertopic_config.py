@@ -65,8 +65,8 @@ class BERTopicConfig:
     @property
     def model_save_path(self) -> str:
         # D:\WOS2025\bertopic_{data_source}_{year_range}_{version}
-        return f"results/topic_models/bertopic_{self.data_source}_{self.year_range}_{self.version}"
-        #return rf"D:\WOS2025\bertopic_{self.data_source}_{self.year_range}_{self.version}"
+        #return f"results/topic_models/bertopic_{self.data_source}_{self.year_range}_{self.version}"
+        return rf"D:\WOS2025\bertopic_{self.data_source}_{self.year_range}_{self.version}"
     
     @property
     def output_dir(self) -> str:
