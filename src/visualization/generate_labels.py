@@ -94,21 +94,26 @@ def generate_chinese_labels(topic_model: BERTopic) -> Dict[int, str]:
     print(f"AI标签生成完成，共 {len(formatted_labels)} 个主题")
     return formatted_labels
 
-
 def set_chinese_labels(topic_model: BERTopic) -> BERTopic:
-    """
-    为BERTopic模型设置中文标签
-    
-    Args:
-        topic_model: BERTopic模型
-        
-    Returns:
-        设置好中文标签的模型
-    """
     labels = generate_chinese_labels(topic_model)
-    topic_model.set_topic_labels(labels)
-    return topic_model
 
+    # 获取真实 topic 顺序（包含 -1）
+    topic_ids = topic_model.get_topic_info()["Topic"].tolist()
+
+    label_list = []
+
+    for topic_id in topic_ids:
+        if topic_id == -1:
+            label_list.append("噪声主题")
+        else:
+            label_list.append(labels.get(topic_id, f"Topic {topic_id}"))
+
+    print("BERTopic主题数:", len(topic_ids))
+    print("生成标签数:", len(label_list))
+
+    topic_model.set_topic_labels(label_list)
+
+    return topic_model
 
 if __name__ == "__main__":
     import argparse
@@ -117,7 +122,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model", "-m",
         type=str,
-        default="results/topic_models/bertopic_abpa_2000-2025_V_pp3",
+        default=r"D:\WOS2025\bertopic_abpa_2000-2025_V_pp3",
         help="BERTopic模型路径"
     )
     parser.add_argument(
@@ -133,14 +138,16 @@ if __name__ == "__main__":
     topic_model = BERTopic.load(args.model)
     
     topic_model = set_chinese_labels(topic_model)
+    #topic_model = set_chinese_labels(topic_model)
+    topic_model.save(args.model)
     
     if args.output:
-        labels = topic_model.topic_labels_
+        labels = topic_model.custom_labels_
         with open(args.output, 'w', encoding='utf-8') as f:
             json.dump(labels, f, ensure_ascii=False, indent=2)
         print(f"标签已保存至: {args.output}")
     else:
         print("\n生成的中文标签:")
-        for topic_id, label in sorted(topic_model.topic_labels_.items()):
+        for topic_id, label in enumerate(topic_model.custom_labels_):
             if topic_id != -1:
                 print(f"  {topic_id}: {label}")
