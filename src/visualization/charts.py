@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from umap import UMAP
 from typing import Optional, List
-from topicvalue import export_topics_over_time_html
+from src.visualization.topicvalue import export_topics_over_time_html
 
 
 class ChartGenerator:

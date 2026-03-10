@@ -26,3 +26,7 @@ data/bertopic_data.jsonl
 main_bert_topic_test.ipynb
 main_bert_topic.ipynb
 Subset_clustering.ipynb
+pre_3.10/
+DEV_SPEC.md
+.opencode/skills/auto-coder
+.opencode/skills/auto-coder-easy

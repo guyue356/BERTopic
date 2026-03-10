@@ -23,7 +23,7 @@ class BERTopicConfig:
     
     umap_params: Dict[str, Any] = field(default_factory=lambda: {
         "n_neighbors": 100, # 50-100,越大结构越稳定
-        "n_components": 10,
+        "n_components": 10, # 降至10维
         "min_dist": 0.0, #
         "metric": "cosine",
         "random_state": 42,
@@ -57,20 +57,20 @@ class BERTopicConfig:
 
         #return f"results/embedding_results/embeddings_{self.data_source}_amb_slide_window3.pkl"
         return f"results/embedding_results/embeddings_PP_{self.data_source}_amb_slide_window3.pkl"
-    
+
     @property
     def umap_cache_path(self) -> str:
-        return f"umap_model_{self.data_source}_{self.start_year}-{self.end_year}_{self.version}.joblib"
+        return f"results/umap_results/umap_model_{self.data_source}_{self.start_year}-{self.end_year}_{self.version}.joblib"
     
     @property
     def model_save_path(self) -> str:
         # D:\WOS2025\bertopic_{data_source}_{year_range}_{version}
-        # return f"results/topic_models/bertopic_{self.data_source}_{self.year_range}_{self.version}"
-        return rf"D:\WOS2025\bertopic_{self.data_source}_{self.year_range}_{self.version}"
+        return f"results/topic_models/bertopic_{self.data_source}_{self.year_range}_{self.version}"
+        #return rf"D:\WOS2025\bertopic_{self.data_source}_{self.year_range}_{self.version}"
     
     @property
     def output_dir(self) -> str:
-        return f"BERTopic_Results_{self.data_source}{self.year_range}_Allset_{self.version}"
+        return f"results/report/BERTopic_Results_{self.data_source}{self.year_range}_Allset_{self.version}"
     
     @property
     def local_model_path(self) -> str:
