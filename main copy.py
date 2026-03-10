@@ -2,7 +2,6 @@ import os
 os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 
 import torch
-import argparse
 from src.config.bertopic_config import BERTopicConfig
 from src.data.loader import DataLoader, TextPreprocessor
 from src.embedding.sliding_window import EmbeddingManager
@@ -11,117 +10,9 @@ from src.model.hdbscan_utils import grid_search_clustering
 from src.model.bertopic_model import BERTopicPipeline
 from src.visualization import generate_bertopic_report, ChartGenerator
 from src.utils.device import get_device
-from src.report_main import load_topic_model, extract_model_config
 
 
-def generate_report_from_saved_model(
-    model_path: str,
-    output_dir: str = None,
-    n_groups: int = 50,
-    use_ai_labels: bool = True,
-    preview: bool = False
-):
-    """从已保存的BERTopic模型生成报告（无需重新训练）"""
-    from src.visualization.generate_labels import set_chinese_labels
-    
-    print("=" * 80)
-    print("从模型生成报告")
-    print("=" * 80)
-    print(f"模型路径: {model_path}")
-    
-    print("\n[Step 1] 加载BERTopic模型...")
-    topic_model = load_topic_model(model_path)
-    
-    topic_info = topic_model.get_topic_info()
-    topic_count = len(topic_info[topic_info['Topic'] != -1])
-    print(f"模型主题数: {topic_count}")
-    
-    if use_ai_labels:
-        print("\n[Step 2] 使用AI生成中文标签...")
-        topic_model = set_chinese_labels(topic_model)
-        print("[OK] 中文标签设置完成")
-    
-    print("\n[Step 3] 提取模型配置参数...")
-    config_dict = extract_model_config(topic_model, model_path)
-    config = config_dict["config"]
-    print("[OK] 配置参数提取完成")
-    
-    if output_dir is None:
-        output_dir = config.output_dir
-    
-    os.makedirs(output_dir, exist_ok=True)
-    
-    safe_data_source = config.data_source.replace("专利", "Patent").replace("样本", "Sample").replace("测试", "Test")
-    report_name = os.path.join(output_dir, f"report_{config.year_range}_{safe_data_source}_{config.version}.html")
-    
-    print("\n[Step 4] 生成报告...")
-    
-    hierarchical_data = {
-        "n_groups": n_groups,
-        "all_topics": list(range(topic_count))
-    }
-    
-    generate_bertopic_report(
-        umap_cfg=config_dict["umap_cfg"],
-        HDBSCAN_cfg=config_dict["hdbscan_cfg"],
-        vectorizer_cfg=config_dict["vectorizer_cfg"],
-        history=None,
-        best_size=topic_count,
-        model_name=config_dict["embedding_model"],
-        output_path=report_name,
-        hierarchical_data=hierarchical_data
-    )
-    
-    print(f"\n[OK] 报告已生成: {report_name}")
-    
-    if preview:
-        import webbrowser
-        url = f"file:///{report_name.replace(os.sep, '/')}"
-        print(f"[预览] 正在打开报告...")
-        webbrowser.open(url)
-    
-    print("=" * 80)
-    print("报告生成完成!")
-    print("=" * 80)
-    
-    return topic_model, report_name
-
-
-def main(args=None):
-    """主入口函数，支持命令行参数"""
-    parser = argparse.ArgumentParser(description="BERTopic Topic Modeling Pipeline")
-    parser.add_argument('--report-from-model', type=str, default=None,
-                        help='从已保存的模型生成报告，跳过训练流程')
-    parser.add_argument('--model-path', type=str, default=None,
-                        help='模型路径（与 --report-from-model 配合使用）')
-    parser.add_argument('--output-dir', type=str, default=None,
-                        help='报告输出目录')
-    parser.add_argument('--n-groups', type=int, default=50,
-                        help='层次聚类分组数')
-    parser.add_argument('--no-ai-labels', action='store_true',
-                        help='不使用AI生成中文标签')
-    parser.add_argument('--preview', action='store_true',
-                        help='生成报告后预览')
-    
-    parsed_args = parser.parse_args(args)
-    
-    # 分支1：从已保存的模型生成报告
-    if parsed_args.report_from_model or parsed_args.model_path:
-        model_path = parsed_args.model_path or parsed_args.report_from_model
-        return generate_report_from_saved_model(
-            model_path=model_path,
-            output_dir=parsed_args.output_dir,
-            n_groups=parsed_args.n_groups,
-            use_ai_labels=not parsed_args.no_ai_labels,
-            preview=parsed_args.preview
-        )
-    
-    # 分支2：完整训练流程
-    return run_full_pipeline()
-
-
-def run_full_pipeline():
-    """运行完整的BERTopic训练流程"""
+def main():
     config = BERTopicConfig()
     
     device = get_device()
@@ -236,5 +127,4 @@ def run_full_pipeline():
 
 
 if __name__ == "__main__":
-    import sys
     results = main()
