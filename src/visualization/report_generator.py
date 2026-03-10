@@ -154,10 +154,10 @@ def generate_bertopic_report(umap_cfg: Dict, HDBSCAN_cfg: Dict, vectorizer_cfg: 
         print(f"警告: 报告文件未创建: {output_path}")
     
     # 生成导航索引页
-    generate_navigation_index(output_dir, hierarchical_data)
+    generate_navigation_index(output_dir, hierarchical_data, output_path)
 
 
-def generate_navigation_index(output_dir: str, hierarchical_data: Optional[Dict] = None):
+def generate_navigation_index(output_dir: str, hierarchical_data: Optional[Dict] = None, report_filename: str = None):
     """生成导航索引页面"""
     # 从目录路径中提取信息
     dir_name = os.path.basename(output_dir)
@@ -169,46 +169,69 @@ def generate_navigation_index(output_dir: str, hierarchical_data: Optional[Dict]
     display_data_source = "测试样本"  # 用于显示的中文名称
     version = "V1"
     
-    # 首先尝试查找目录中已有的报告文件
-    import glob
-    report_files = glob.glob(os.path.join(output_dir, "report_*.html"))
-    if report_files:
-        # 使用第一个找到的报告文件来提取信息
-        report_file = os.path.basename(report_files[0])
-        # 格式: report_{year_range}_{data_source}_{version}.html
-        report_parts = report_file.replace('report_', '').replace('.html', '').split('_')
-        if len(report_parts) >= 3:
-            year_range = report_parts[0]
-            data_source = report_parts[1]
-            version = report_parts[2]
-            # 将英文数据源名称转换回中文显示
-            if data_source == "TestSample":
-                display_data_source = "测试样本"
-            elif data_source == "QYPatentSample":
-                display_data_source = "QY专利样本"
-            else:
-                display_data_source = data_source
-    elif len(parts) >= 4:
-        try:
-            # 格式: BERTopic_Results_{data_source}{year_range}_Allset_{version}
-            data_source_part = parts[1]
-            year_range_part = parts[2] if len(parts) > 2 else "2000-2025"
-            
-            # 提取数据源和年份范围
-            import re
-            match = re.search(r'([^\d]+)(\d+-\d+)', data_source_part + year_range_part)
-            if match:
-                data_source = match.group(1)
-                year_range = match.group(2)
-            
-            # 提取版本
-            if len(parts) > 3:
-                version_part = parts[3]
-                version_match = re.search(r'V\d+', version_part)
-                if version_match:
-                    version = version_match.group()
-        except:
-            pass
+    # 如果提供了报告文件名，直接从文件名提取信息
+    if report_filename:
+        report_basename = os.path.basename(report_filename)
+        if report_basename.startswith("report_") and report_basename.endswith(".html"):
+            report_parts = report_basename.replace('report_', '').replace('.html', '').split('_')
+            if len(report_parts) >= 3:
+                year_range = report_parts[0]
+                data_source = report_parts[1]
+                version = report_parts[2]
+                # 将英文数据源名称转换回中文显示
+                if data_source == "TestSample":
+                    display_data_source = "测试样本"
+                elif data_source == "QYPatentSample":
+                    display_data_source = "QY专利样本"
+                elif data_source == "abpa":
+                    display_data_source = "ABPA"
+                else:
+                    display_data_source = data_source
+    
+    # 如果没有提供报告文件名，尝试查找目录中已有的报告文件
+    if not report_filename:
+        import glob
+        report_files = glob.glob(os.path.join(output_dir, "report_*.html"))
+        if report_files:
+            report_filename = report_files[0]
+            report_basename = os.path.basename(report_filename)
+            report_parts = report_basename.replace('report_', '').replace('.html', '').split('_')
+            if len(report_parts) >= 3:
+                year_range = report_parts[0]
+                data_source = report_parts[1]
+                version = report_parts[2]
+                if data_source == "TestSample":
+                    display_data_source = "测试样本"
+                elif data_source == "QYPatentSample":
+                    display_data_source = "QY专利样本"
+                elif data_source == "abpa":
+                    display_data_source = "ABPA"
+                else:
+                    display_data_source = data_source
+    
+    # 如果仍未找到，使用目录名作为后备
+    if not report_filename or not os.path.exists(os.path.join(output_dir, os.path.basename(report_filename))):
+        if len(parts) >= 4:
+            try:
+                data_source_part = parts[1]
+                year_range_part = parts[2] if len(parts) > 2 else "2000-2025"
+                
+                import re
+                match = re.search(r'([^\d]+)(\d+-\d+)', data_source_part + year_range_part)
+                if match:
+                    data_source = match.group(1)
+                    year_range = match.group(2)
+                
+                if len(parts) > 3:
+                    version_part = parts[3]
+                    version_match = re.search(r'V\d+', version_part)
+                    if version_match:
+                        version = version_match.group()
+            except:
+                pass
+        
+        # 使用提取的信息构建报告文件名
+        report_filename = f"report_{year_range}_{data_source}_{version}.html"
     
     # 如果有层次聚类数据，更新标题
     if hierarchical_data:
@@ -217,7 +240,7 @@ def generate_navigation_index(output_dir: str, hierarchical_data: Optional[Dict]
     else:
         title_base = f'{year_range}年{display_data_source}主题聚类结果一览表-{version}'
     
-    # 生成导航页面内容
+    # 生成导航页面内容（删除了数据下载模块）
     index_content = f"""
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -237,12 +260,7 @@ def generate_navigation_index(output_dir: str, hierarchical_data: Optional[Dict]
         .nav-btn:hover {{ background: #3498db; color: white; border-color: #2980b9; }}
         .nav-btn.active {{ background: #3498db; color: white; }}
         #content-frame {{ flex-grow: 1; border: none; width: 100%; }}
-        .data-section {{ background: #f8f9fa; padding: 20px; margin: 20px; border-radius: 8px; border: 1px solid #dee2e6; }}
-        .data-btn {{ 
-            padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; 
-            cursor: pointer; text-decoration: none; display: inline-block; margin: 5px; transition: all 0.3s;
-        }}
-        .data-btn:hover {{ background: #218838; }}
+        .param-section {{ background: #f8f9fa; padding: 20px; margin: 20px; border-radius: 8px; border: 1px solid #dee2e6; }}
         .section-title {{ color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }}
     </style>
 </head>
@@ -253,7 +271,7 @@ def generate_navigation_index(output_dir: str, hierarchical_data: Optional[Dict]
     </header>
     
     <nav>
-        <a class="nav-btn" href="report_{year_range}_{data_source}_{version}.html" target="chart_frame">✨ 参数说明文档</a>
+        <a class="nav-btn" href="{os.path.basename(report_filename)}" target="chart_frame">✨ 参数说明文档</a>
         <a class="nav-btn" href="barchart.html" target="chart_frame">📈 主题关键词权重图</a>
         <a class="nav-btn" href="hierarchy.html" target="chart_frame">📊 主题层次聚类图</a>
         <a class="nav-btn" href="documents.html" target="chart_frame">📍 主题分布散点图</a>
@@ -263,36 +281,7 @@ def generate_navigation_index(output_dir: str, hierarchical_data: Optional[Dict]
 
     <div style="display: flex; height: calc(100vh - 150px);">
         <div style="width: 300px; background: #f8f9fa; padding: 20px; overflow-y: auto; border-right: 1px solid #ddd;">
-            <div class="data-section">
-                <h3 class="section-title">📥 数据下载</h3>
-                <p>下载分析过程中生成的数据文件：</p>
-                
-                <div style="margin-bottom: 15px;">
-                    <h4>📊 主题数据</h4>
-                    <a class="data-btn" href="#" onclick="alert('主题数据导出功能待实现')">主题信息表</a>
-                    <a class="data-btn" href="#" onclick="alert('关键词数据导出功能待实现')">主题关键词</a>
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <h4>📈 聚类结果</h4>
-                    <a class="data-btn" href="#" onclick="alert('聚类标签导出功能待实现')">文档聚类标签</a>
-                    <a class="data-btn" href="#" onclick="alert('层次聚类数据导出功能待实现')">层次聚类数据</a>
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <h4>🕒 时序分析</h4>
-                    <a class="data-btn" href="#" onclick="alert('时序数据导出功能待实现')">主题时序数据</a>
-                    <a class="data-btn" href="#" onclick="alert('年份矩阵导出功能待实现')">年份矩阵数据</a>
-                </div>
-                
-                <div>
-                    <h4>📁 原始数据</h4>
-                    <a class="data-btn" href="#" onclick="alert('嵌入向量导出功能待实现')">文档嵌入向量</a>
-                    <a class="data-btn" href="#" onclick="alert('预处理数据导出功能待实现')">预处理文本</a>
-                </div>
-            </div>
-            
-            <div class="data-section">
+            <div class="param-section">
                 <h3 class="section-title">⚙️ 分析参数</h3>
                 <ul style="list-style: none; padding-left: 0;">
                     <li>📅 年份范围: {year_range}</li>
@@ -304,7 +293,7 @@ def generate_navigation_index(output_dir: str, hierarchical_data: Optional[Dict]
             </div>
         </div>
         
-        <iframe name="chart_frame" id="content-frame" src="report_{year_range}_{data_source}_{version}.html" style="flex-grow: 1;"></iframe>
+        <iframe name="chart_frame" id="content-frame" src="{os.path.basename(report_filename)}" style="flex-grow: 1;"></iframe>
     </div>
 
     <script>
@@ -317,15 +306,6 @@ def generate_navigation_index(output_dir: str, hierarchical_data: Optional[Dict]
         }});
         // 默认高亮第一个按钮（即参数说明页面）
         buttons[0].classList.add('active');
-        
-        // 数据下载按钮点击事件
-        document.querySelectorAll('.data-btn').forEach(btn => {{
-            btn.addEventListener('click', function(e) {{
-                if (this.getAttribute('href') === '#') {{
-                    e.preventDefault();
-                }}
-            }});
-        }});
     </script>
 </body>
 </html>
