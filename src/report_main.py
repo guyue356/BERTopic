@@ -304,7 +304,8 @@ def main():
     parser.add_argument(
         "--input", "-i",
         type=str,
-        default="results/topic_models/bertopic_abpa_2000-2025_V_pp3",
+        default=r"D:\WOS2025\bertopic_abpa_2000-2025_V_pp3",
+        #default="results/topic_models/bertopic_abpa_2000-2025_V_pp3",
         help="BERTopic模型路径或包含模型的目录(批量模式)"
     )
     parser.add_argument(
