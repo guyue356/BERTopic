@@ -50,7 +50,6 @@ def generate_experiment_portal(filename="Experiment_Portal.html"):
                     <p class="lead text-muted">自动检索当前目录下的所有实验结果索引</p>
                 </div>
             </div>
-
             <div class="row">
     """
 

@@ -11,7 +11,7 @@ init_table.py
 mysql_execute.py
 main_text_combined.ipynb
 
-*.json
+
 !data/stopwords.json
 __pycache__/
 README_前沿技术.md
@@ -21,3 +21,5 @@ image/
 *.joblib       
 绘图1.eddx       
 BERTopic主题聚类.txt  
+data/bertopic_data_new.jsonl
+data/bertopic_data.jsonl
